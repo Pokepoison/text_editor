@@ -12,7 +12,7 @@ const pageCache = new CacheFirst({
   plugins: [
     new CacheableResponsePlugin({
       statuses: [0, 200],
-    }),
+    },
     new ExpirationPlugin({
       maxAgeSeconds: 30 * 24 * 60 * 60,
     }),
@@ -24,7 +24,25 @@ warmStrategyCache({
   strategy: pageCache,
 });
 
-registerRoute(({ request }) => request.mode === 'navigate', pageCache);
+registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  pageCache
+);
 
-// TODO: Implement asset caching
-registerRoute();
+// Implement asset caching
+registerRoute(
+  // Define the URL pattern for assets you want to cache
+  // For example, cache all files under the 'assets' directory
+  ({ request }) => request.destination === 'image' || request.destination === 'script' || request.destination === 'style',
+  new CacheFirst({
+    cacheName: 'asset-cache',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        maxAgeSeconds: 7 * 24 * 60 * 60, // Cache assets for 7 days
+      },
+    ],
+  })
+);
